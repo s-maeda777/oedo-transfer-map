@@ -52,7 +52,7 @@ function buildAllTransferHubs() {
 
   return [...clusters.values()]
     .filter((c) => c.lines.size > 1)
-    .map((c) => ({ names: [...c.names], lines: [...c.lines], lat: c.lat, lon: c.lon }))
+    .map((c) => ({ id: [...c.names].join('/'), names: [...c.names], lines: [...c.lines], lat: c.lat, lon: c.lon }))
     .sort((a, b) => b.lines.length - a.lines.length);
 }
 const ALL_TRANSFER_HUBS = buildAllTransferHubs();
@@ -131,6 +131,7 @@ export default function OedoTransferMap() {
   const [selectedId, setSelectedId] = useState(null);
   const [listOpen, setListOpen] = useState(false);
   const [allListOpen, setAllListOpen] = useState(false);
+  const [selectedHubId, setSelectedHubId] = useState(null);
 
   const isAllMode = company === ALL_KEY;
 
@@ -142,10 +143,13 @@ export default function OedoTransferMap() {
   function selectCompany(c) {
     setCompany(c);
     setSelectedId(null);
+    setSelectedHubId(null);
     if (c === ALL_KEY) return;
     const first = lines.find((l) => l.company === c);
     setActiveKey(first.key);
   }
+
+  const selectedHub = ALL_TRANSFER_HUBS.find((h) => h.id === selectedHubId) || null;
 
   function selectLine(key) {
     setActiveKey(key);
@@ -243,6 +247,27 @@ export default function OedoTransferMap() {
                 return <Polyline key={`${l.key}-${i}`} positions={path} pathOptions={{ color: l.color, weight: 2.5, opacity: 0.8 }} />;
               }),
             )}
+            {ALL_TRANSFER_HUBS.map((hub) => {
+              const isSelected = hub.id === selectedHubId;
+              return (
+                <CircleMarker
+                  key={hub.id}
+                  center={[hub.lat, hub.lon]}
+                  radius={isSelected ? 8 : 4 + Math.min(hub.lines.length, 8) * 0.4}
+                  pathOptions={{
+                    color: isSelected ? '#ff5722' : '#333',
+                    weight: isSelected ? 3 : 1,
+                    fillColor: '#ffffff',
+                    fillOpacity: 1,
+                  }}
+                  eventHandlers={{ click: () => setSelectedHubId(hub.id) }}
+                >
+                  <Tooltip direction="top" offset={[0, -6]}>
+                    {hub.names.join(' / ')}（{hub.lines.length}路線）
+                  </Tooltip>
+                </CircleMarker>
+              );
+            })}
           </MapContainer>
         ) : (
           <MapContainer key={activeKey} bounds={boundsOf(activeLine.stations)} style={{ width: '100%', height: '100%' }}>
@@ -284,9 +309,39 @@ export default function OedoTransferMap() {
         )}
       </div>
 
-      {/* 全路線モード: 乗換ハブ駅一覧 */}
+      {/* 全路線モード: 選択中ハブ + 乗換ハブ駅一覧 */}
       {isAllMode && (
         <div style={{ flex: '0 0 auto', maxHeight: '32vh', overflowY: 'auto', borderTop: '1px solid #ddd', background: '#fff', padding: '8px 12px' }}>
+          {selectedHub ? (
+            <div style={{ border: '2px solid #ff5722', borderRadius: 10, padding: '10px 12px', marginBottom: 10, background: '#fff7f4' }}>
+              <div style={{ fontSize: 15, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>
+                📍 {selectedHub.names.join(' / ')}
+                <span style={{ fontWeight: 'normal', fontSize: 12, color: '#888' }}> （{selectedHub.lines.length}路線）</span>
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {selectedHub.lines.map((lineName) => (
+                  <span
+                    key={lineName}
+                    style={{
+                      fontSize: 11,
+                      padding: '2px 8px',
+                      borderRadius: 9,
+                      color: '#fff',
+                      background: COLOR_BY_LINE_LABEL[lineName] || '#888',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {lineName}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 12.5, color: '#888', marginBottom: 10 }}>
+              地図上の白い丸（乗換ハブ駅、{ALL_TRANSFER_HUBS.length}駅）をタップすると、乗り入れ路線がここに表示されます。
+            </div>
+          )}
+
           <button
             onClick={() => setAllListOpen((v) => !v)}
             style={{
@@ -303,14 +358,22 @@ export default function OedoTransferMap() {
             }}
           >
             <span>{allListOpen ? '▾' : '▸'}</span>
-            全路線 乗換ハブ駅一覧（{ALL_TRANSFER_HUBS.length}駅、乗り入れ路線数が多い順）
+            全ハブ駅一覧（乗り入れ路線数が多い順）
           </button>
           {allListOpen && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
               {ALL_TRANSFER_HUBS.map((hub) => (
                 <div
-                  key={hub.names.join('/')}
-                  style={{ border: '1px solid #e5e5e5', borderRadius: 8, padding: '6px 10px', minWidth: 220 }}
+                  key={hub.id}
+                  onClick={() => setSelectedHubId(hub.id)}
+                  style={{
+                    border: `1px solid ${hub.id === selectedHubId ? '#ff5722' : '#e5e5e5'}`,
+                    borderRadius: 8,
+                    padding: '6px 10px',
+                    minWidth: 220,
+                    cursor: 'pointer',
+                    background: hub.id === selectedHubId ? '#fff7f4' : '#fff',
+                  }}
                 >
                   <div style={{ fontWeight: 'bold', fontSize: 13.5, marginBottom: 4 }}>
                     {hub.names.join(' / ')}
