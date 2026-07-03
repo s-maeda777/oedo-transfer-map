@@ -8,6 +8,55 @@ const COLOR_BY_LINE_LABEL = Object.fromEntries(lines.map((l) => [l.label, l.colo
 const ALL_KEY = '__all__';
 const ALL_STATIONS = lines.flatMap((l) => l.stations);
 
+// 全路線をまたいだ乗換ハブを集計する。駅名が同じもの・別名だが乗換対象(徒歩圏)として
+// 検出されているものをUnion-Findでまとめ、1つの物理的なハブとして扱う。
+function buildAllTransferHubs() {
+  const parent = new Map();
+  const find = (x) => {
+    while (parent.get(x) !== x) {
+      parent.set(x, parent.get(parent.get(x)));
+      x = parent.get(x);
+    }
+    return x;
+  };
+  const union = (a, b) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  };
+
+  for (const l of lines) {
+    for (const st of l.stations) {
+      if (!parent.has(st.name)) parent.set(st.name, st.name);
+    }
+  }
+  for (const l of lines) {
+    for (const st of l.stations) {
+      for (const t of st.transfers) {
+        if (!parent.has(t.station)) parent.set(t.station, t.station);
+        union(st.name, t.station);
+      }
+    }
+  }
+
+  const clusters = new Map();
+  for (const l of lines) {
+    for (const st of l.stations) {
+      const root = find(st.name);
+      if (!clusters.has(root)) clusters.set(root, { names: new Set(), lines: new Set(), lat: st.lat, lon: st.lon });
+      const c = clusters.get(root);
+      c.names.add(st.name);
+      c.lines.add(l.label);
+    }
+  }
+
+  return [...clusters.values()]
+    .filter((c) => c.lines.size > 1)
+    .map((c) => ({ names: [...c.names], lines: [...c.lines], lat: c.lat, lon: c.lon }))
+    .sort((a, b) => b.lines.length - a.lines.length);
+}
+const ALL_TRANSFER_HUBS = buildAllTransferHubs();
+
 function boundsOf(stations) {
   const lats = stations.map((s) => s.lat);
   const lons = stations.map((s) => s.lon);
@@ -81,6 +130,7 @@ export default function OedoTransferMap() {
   const [activeKey, setActiveKey] = useState(companyLines[0]?.key);
   const [selectedId, setSelectedId] = useState(null);
   const [listOpen, setListOpen] = useState(false);
+  const [allListOpen, setAllListOpen] = useState(false);
 
   const isAllMode = company === ALL_KEY;
 
@@ -233,6 +283,62 @@ export default function OedoTransferMap() {
           </MapContainer>
         )}
       </div>
+
+      {/* 全路線モード: 乗換ハブ駅一覧 */}
+      {isAllMode && (
+        <div style={{ flex: '0 0 auto', maxHeight: '32vh', overflowY: 'auto', borderTop: '1px solid #ddd', background: '#fff', padding: '8px 12px' }}>
+          <button
+            onClick={() => setAllListOpen((v) => !v)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12.5,
+              fontWeight: 'bold',
+              color: '#333',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          >
+            <span>{allListOpen ? '▾' : '▸'}</span>
+            全路線 乗換ハブ駅一覧（{ALL_TRANSFER_HUBS.length}駅、乗り入れ路線数が多い順）
+          </button>
+          {allListOpen && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+              {ALL_TRANSFER_HUBS.map((hub) => (
+                <div
+                  key={hub.names.join('/')}
+                  style={{ border: '1px solid #e5e5e5', borderRadius: 8, padding: '6px 10px', minWidth: 220 }}
+                >
+                  <div style={{ fontWeight: 'bold', fontSize: 13.5, marginBottom: 4 }}>
+                    {hub.names.join(' / ')}
+                    <span style={{ fontWeight: 'normal', fontSize: 11, color: '#888' }}> （{hub.lines.length}路線）</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {hub.lines.map((lineName) => (
+                      <span
+                        key={lineName}
+                        style={{
+                          fontSize: 10.5,
+                          padding: '1px 7px',
+                          borderRadius: 8,
+                          color: '#fff',
+                          background: COLOR_BY_LINE_LABEL[lineName] || '#888',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {lineName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 選択中の駅 + 乗換駅一覧 */}
       {!isAllMode && (
