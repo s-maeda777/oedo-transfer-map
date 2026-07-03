@@ -34,6 +34,8 @@ export default function OedoTransferMap() {
   const segmentPaths = activeLine.segments.map((seg) => seg.map((s) => [s.lat, s.lon]));
   if (activeLine.loop && segmentPaths[0]?.length > 0) segmentPaths[0].push(segmentPaths[0][0]);
 
+  const transferStations = activeLine.stations.filter((s) => s.transfers.length > 0);
+
   return (
     <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif' }}>
       <header style={{ padding: '10px 16px', background: '#222', color: '#fff', flex: '0 0 auto' }}>
@@ -117,12 +119,48 @@ export default function OedoTransferMap() {
                 <Popup>
                   <strong>{st.name}</strong>
                   <br />
-                  {isTransfer ? <>乗換: {st.transfers.join(' / ')}</> : <span>乗換なし</span>}
+                  {isTransfer ? (
+                    <ul style={{ margin: '4px 0 0', paddingLeft: 16 }}>
+                      {st.transfers.map((t) => (
+                        <li key={t.line}>
+                          {t.line}（徒歩約{t.walkMin}分）
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span>乗換なし</span>
+                  )}
                 </Popup>
               </CircleMarker>
             );
           })}
         </MapContainer>
+      </div>
+
+      {/* 乗換駅一覧 */}
+      <div style={{ flex: '0 0 auto', maxHeight: '22vh', overflowY: 'auto', borderTop: '1px solid #ddd', background: '#fff', padding: '8px 12px' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 'bold', marginBottom: 6, color: '#333' }}>
+          乗換駅一覧（{transferStations.length}駅）
+        </div>
+        {transferStations.length === 0 ? (
+          <div style={{ fontSize: 12, color: '#888' }}>この路線に乗換駅はありません</div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {transferStations.map((st) => (
+              <div
+                key={st.id}
+                style={{ border: `1px solid ${activeLine.color}`, borderRadius: 6, padding: '6px 10px', minWidth: 170 }}
+              >
+                <div style={{ fontWeight: 'bold', fontSize: 13 }}>{st.name}</div>
+                {st.transfers.map((t) => (
+                  <div key={t.line} style={{ fontSize: 11.5, color: '#555' }}>
+                    → {t.line}（徒歩約{t.walkMin}分）
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
