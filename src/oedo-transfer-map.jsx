@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import lines from './data/lines.json';
 
 const COMPANIES = [...new Set(lines.map((l) => l.company))];
+const COLOR_BY_LINE_LABEL = Object.fromEntries(lines.map((l) => [l.label, l.color]));
 
 function boundsOf(stations) {
   const lats = stations.map((s) => s.lat);
@@ -15,12 +16,61 @@ function boundsOf(stations) {
   ];
 }
 
-function TransferRows({ transfers }) {
-  return transfers.map((t) => (
-    <div key={t.station} style={{ fontSize: 11.5, color: '#555' }}>
-      → {t.station}（{t.lines.join('・')}）徒歩約{t.walkMin}分
+function TransferCards({ transfers }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {transfers.map((t) => (
+        <div
+          key={t.station}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 10,
+            background: '#fff',
+            border: '1px solid #e5e5e5',
+            borderRadius: 8,
+            padding: '6px 10px',
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 'bold', fontSize: 13.5, color: '#222' }}>{t.station}</div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 3 }}>
+              {t.lines.map((lineName) => (
+                <span
+                  key={lineName}
+                  style={{
+                    fontSize: 10.5,
+                    padding: '1px 7px',
+                    borderRadius: 8,
+                    color: '#fff',
+                    background: COLOR_BY_LINE_LABEL[lineName] || '#888',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {lineName}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div
+            style={{
+              flex: '0 0 auto',
+              fontSize: 12.5,
+              fontWeight: 'bold',
+              color: '#fff',
+              background: '#ff5722',
+              borderRadius: 14,
+              padding: '4px 10px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            🚶 {t.walkMin}分
+          </div>
+        </div>
+      ))}
     </div>
-  ));
+  );
 }
 
 export default function OedoTransferMap() {
@@ -144,12 +194,12 @@ export default function OedoTransferMap() {
       {/* 選択中の駅 + 乗換駅一覧 */}
       <div style={{ flex: '0 0 auto', maxHeight: '26vh', overflowY: 'auto', borderTop: '1px solid #ddd', background: '#fff', padding: '8px 12px' }}>
         {selectedStation && (
-          <div style={{ border: '2px solid #ff5722', borderRadius: 6, padding: '6px 10px', marginBottom: 10, background: '#fff7f4' }}>
-            <div style={{ fontSize: 13, fontWeight: 'bold', color: '#ff5722' }}>選択中: {selectedStation.name}</div>
+          <div style={{ border: '2px solid #ff5722', borderRadius: 10, padding: '10px 12px', marginBottom: 10, background: '#fff7f4' }}>
+            <div style={{ fontSize: 15, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>📍 {selectedStation.name}</div>
             {selectedStation.transfers.length > 0 ? (
-              <TransferRows transfers={selectedStation.transfers} />
+              <TransferCards transfers={selectedStation.transfers} />
             ) : (
-              <div style={{ fontSize: 11.5, color: '#888' }}>乗換なし</div>
+              <div style={{ fontSize: 12.5, color: '#888' }}>乗換なし</div>
             )}
           </div>
         )}
@@ -185,13 +235,13 @@ export default function OedoTransferMap() {
                     border: `1px solid ${st.id === selectedId ? '#ff5722' : activeLine.color}`,
                     borderRadius: 6,
                     padding: '6px 10px',
-                    minWidth: 170,
+                    minWidth: 230,
                     cursor: 'pointer',
                     background: st.id === selectedId ? '#fff7f4' : '#fff',
                   }}
                 >
-                  <div style={{ fontWeight: 'bold', fontSize: 13 }}>{st.name}</div>
-                  <TransferRows transfers={st.transfers} />
+                  <div style={{ fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>{st.name}</div>
+                  <TransferCards transfers={st.transfers} />
                 </div>
               ))}
             </div>
