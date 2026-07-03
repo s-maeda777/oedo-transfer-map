@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip } from 'react-leaflet';
+import { useEffect, useMemo, useState } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Polyline, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import lines from './data/lines.json';
 
@@ -56,6 +56,29 @@ function buildAllTransferHubs() {
     .sort((a, b) => b.lines.length - a.lines.length);
 }
 const ALL_TRANSFER_HUBS = buildAllTransferHubs();
+
+// 検索用: 駅名でまとめたインデックス(同名駅はどの路線にあるか一覧を持たせる)
+function buildSearchIndex() {
+  const byName = new Map();
+  for (const l of lines) {
+    for (const st of l.stations) {
+      if (!byName.has(st.name)) byName.set(st.name, { name: st.name, lat: st.lat, lon: st.lon, entries: [] });
+      byName.get(st.name).entries.push({ lineKey: l.key, company: l.company, label: l.label, stationId: st.id });
+    }
+  }
+  return [...byName.values()];
+}
+const SEARCH_INDEX = buildSearchIndex();
+
+function FlyTo({ target }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.flyTo([target.lat, target.lon], Math.max(map.getZoom(), 15), { duration: 0.5 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target?.lat, target?.lon, target?.nonce]);
+  return null;
+}
 
 function boundsOf(stations) {
   const lats = stations.map((s) => s.lat);
@@ -132,8 +155,26 @@ export default function OedoTransferMap() {
   const [listOpen, setListOpen] = useState(false);
   const [allListOpen, setAllListOpen] = useState(false);
   const [selectedHubId, setSelectedHubId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [flyTarget, setFlyTarget] = useState(null);
 
   const isAllMode = company === ALL_KEY;
+
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return [];
+    return SEARCH_INDEX.filter((s) => s.name.includes(q)).slice(0, 8);
+  }, [searchQuery]);
+
+  function selectSearchResult(result) {
+    const entry = result.entries[0];
+    setCompany(entry.company);
+    setActiveKey(entry.lineKey);
+    setSelectedId(entry.stationId);
+    setSelectedHubId(null);
+    setFlyTarget({ lat: result.lat, lon: result.lon, nonce: Date.now() });
+    setSearchQuery('');
+  }
 
   const activeLine = useMemo(
     () => lines.find((l) => l.key === activeKey) || companyLines[0],
@@ -164,13 +205,63 @@ export default function OedoTransferMap() {
 
   return (
     <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif' }}>
-      <header style={{ padding: '10px 16px', background: '#222', color: '#fff', flex: '0 0 auto' }}>
-        <h1 style={{ margin: 0, fontSize: 18 }}>東京 沿線マップ</h1>
-        <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.85 }}>
-          {isAllMode
-            ? `全路線マップ — 収録している${lines.length}路線をすべて同じ地図に重ねて表示しています。`
-            : `${activeLine.company} / ${activeLine.label} — 実際の地理座標で表示。丸が大きい駅は他路線への乗換駅です（タップすると下に詳細表示）。`}
-        </p>
+      <header style={{ padding: '10px 16px', background: '#222', color: '#fff', flex: '0 0 auto', position: 'relative', zIndex: 1100 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 18 }}>東京 沿線マップ</h1>
+            <p style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.85 }}>
+              {isAllMode
+                ? `全路線マップ — 収録している${lines.length}路線をすべて同じ地図に重ねて表示しています。`
+                : `${activeLine.company} / ${activeLine.label} — 実際の地理座標で表示。丸が大きい駅は他路線への乗換駅です（タップすると下に詳細表示）。`}
+            </p>
+          </div>
+          <div style={{ position: 'relative', width: '100%', maxWidth: 260 }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="🔍 駅名で検索"
+              style={{
+                width: '100%',
+                padding: '7px 10px',
+                borderRadius: 6,
+                border: 'none',
+                fontSize: 13,
+                boxSizing: 'border-box',
+              }}
+            />
+            {searchResults.length > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  width: '100%',
+                  background: '#fff',
+                  border: '1px solid #ccc',
+                  borderRadius: 6,
+                  marginTop: 4,
+                  maxHeight: 260,
+                  overflowY: 'auto',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                }}
+              >
+                {searchResults.map((r) => (
+                  <div
+                    key={r.name}
+                    onClick={() => selectSearchResult(r)}
+                    style={{ padding: '6px 10px', cursor: 'pointer', borderBottom: '1px solid #eee' }}
+                  >
+                    <div style={{ fontWeight: 'bold', fontSize: 13, color: '#222' }}>{r.name}</div>
+                    <div style={{ fontSize: 10.5, color: '#888' }}>
+                      {[...new Set(r.entries.map((e) => e.label))].join(' / ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </header>
 
       {/* 会社タブ */}
@@ -305,6 +396,7 @@ export default function OedoTransferMap() {
                 </CircleMarker>
               );
             })}
+            <FlyTo target={flyTarget} />
           </MapContainer>
         )}
       </div>
