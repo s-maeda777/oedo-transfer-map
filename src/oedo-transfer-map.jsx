@@ -28,6 +28,7 @@ export default function OedoTransferMap() {
   const companyLines = useMemo(() => lines.filter((l) => l.company === company), [company]);
   const [activeKey, setActiveKey] = useState(companyLines[0].key);
   const [selectedId, setSelectedId] = useState(null);
+  const [listOpen, setListOpen] = useState(false);
 
   const activeLine = useMemo(
     () => lines.find((l) => l.key === activeKey) || companyLines[0],
@@ -153,32 +154,48 @@ export default function OedoTransferMap() {
           </div>
         )}
 
-        <div style={{ fontSize: 12.5, fontWeight: 'bold', marginBottom: 6, color: '#333' }}>
+        <button
+          onClick={() => setListOpen((v) => !v)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 12.5,
+            fontWeight: 'bold',
+            color: '#333',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+          }}
+        >
+          <span>{listOpen ? '▾' : '▸'}</span>
           乗換駅一覧（{transferStations.length}駅）
-        </div>
-        {transferStations.length === 0 ? (
-          <div style={{ fontSize: 12, color: '#888' }}>この路線に乗換駅はありません</div>
-        ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {transferStations.map((st) => (
-              <div
-                key={st.id}
-                onClick={() => setSelectedId(st.id)}
-                style={{
-                  border: `1px solid ${st.id === selectedId ? '#ff5722' : activeLine.color}`,
-                  borderRadius: 6,
-                  padding: '6px 10px',
-                  minWidth: 170,
-                  cursor: 'pointer',
-                  background: st.id === selectedId ? '#fff7f4' : '#fff',
-                }}
-              >
-                <div style={{ fontWeight: 'bold', fontSize: 13 }}>{st.name}</div>
-                <TransferRows transfers={st.transfers} />
-              </div>
-            ))}
-          </div>
-        )}
+        </button>
+        {listOpen &&
+          (transferStations.length === 0 ? (
+            <div style={{ fontSize: 12, color: '#888', marginTop: 6 }}>この路線に乗換駅はありません</div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+              {transferStations.map((st) => (
+                <div
+                  key={st.id}
+                  onClick={() => setSelectedId(st.id)}
+                  style={{
+                    border: `1px solid ${st.id === selectedId ? '#ff5722' : activeLine.color}`,
+                    borderRadius: 6,
+                    padding: '6px 10px',
+                    minWidth: 170,
+                    cursor: 'pointer',
+                    background: st.id === selectedId ? '#fff7f4' : '#fff',
+                  }}
+                >
+                  <div style={{ fontWeight: 'bold', fontSize: 13 }}>{st.name}</div>
+                  <TransferRows transfers={st.transfers} />
+                </div>
+              ))}
+            </div>
+          ))}
       </div>
     </div>
   );
