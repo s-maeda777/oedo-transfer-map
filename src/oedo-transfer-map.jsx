@@ -158,12 +158,15 @@ export default function OedoTransferMap() {
       <div style={{ flex: '1 1 auto' }}>
         <MapContainer key={activeKey} bounds={boundsOf(activeLine.stations)} style={{ width: '100%', height: '100%' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           />
 
           {segmentPaths.map((path, i) => (
-            <Polyline key={i} positions={path} pathOptions={{ color: activeLine.color, weight: 5, opacity: 0.9 }} />
+            <Polyline key={`halo-${i}`} positions={path} pathOptions={{ color: '#ffffff', weight: 8, opacity: 0.9 }} />
+          ))}
+          {segmentPaths.map((path, i) => (
+            <Polyline key={i} positions={path} pathOptions={{ color: activeLine.color, weight: 5, opacity: 0.95 }} />
           ))}
 
           {activeLine.stations.map((st) => {
