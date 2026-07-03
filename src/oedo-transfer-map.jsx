@@ -31,8 +31,8 @@ export default function OedoTransferMap() {
     setActiveKey(first.key);
   }
 
-  const path = activeLine.stations.map((s) => [s.lat, s.lon]);
-  if (activeLine.loop && path.length > 0) path.push(path[0]);
+  const segmentPaths = activeLine.segments.map((seg) => seg.map((s) => [s.lat, s.lon]));
+  if (activeLine.loop && segmentPaths[0]?.length > 0) segmentPaths[0].push(segmentPaths[0][0]);
 
   return (
     <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif' }}>
@@ -93,7 +93,9 @@ export default function OedoTransferMap() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          <Polyline positions={path} pathOptions={{ color: activeLine.color, weight: 5, opacity: 0.9 }} />
+          {segmentPaths.map((path, i) => (
+            <Polyline key={i} positions={path} pathOptions={{ color: activeLine.color, weight: 5, opacity: 0.9 }} />
+          ))}
 
           {activeLine.stations.map((st) => {
             const isTransfer = st.transfers.length > 0;
