@@ -263,7 +263,7 @@ export default function OedoTransferMap() {
       `}</style>
 
       <header style={{ padding: '8px 16px', background: 'linear-gradient(135deg, #14141a, #202028)', color: '#fff', flex: '0 0 auto', boxShadow: '0 2px 8px rgba(0,0,0,0.25)', position: 'relative', zIndex: 1100, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <h1 style={{ margin: 0, fontSize: 16, fontWeight: 800, letterSpacing: '-0.01em', whiteSpace: 'nowrap', flex: '0 0 auto' }}>東京 沿線マップ</h1>
+        <h1 title="Tokyo Transfer Map" style={{ margin: 0, fontSize: 17, fontWeight: 800, letterSpacing: '0.02em', whiteSpace: 'nowrap', flex: '0 0 auto' }}>TTM</h1>
 
         <div style={{ position: 'relative', flex: '1 1 auto', maxWidth: 320 }}>
           <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, opacity: 0.5, pointerEvents: 'none' }}>🔍</span>
