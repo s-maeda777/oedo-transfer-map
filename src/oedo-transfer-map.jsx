@@ -262,16 +262,11 @@ export default function OedoTransferMap() {
         .collapse-toggle:hover { color: #111; }
       `}</style>
 
-      <header style={{ padding: '14px 16px 12px', background: 'linear-gradient(135deg, #14141a, #202028)', color: '#fff', flex: '0 0 auto', boxShadow: '0 2px 8px rgba(0,0,0,0.25)', position: 'relative', zIndex: 1100 }}>
-        <h1 style={{ margin: 0, fontSize: 19, fontWeight: 800, letterSpacing: '-0.01em' }}>東京 沿線マップ</h1>
-        <p style={{ margin: '4px 0 10px', fontSize: 12, opacity: 0.75, lineHeight: 1.5 }}>
-          {isAllMode
-            ? `全路線マップ — 収録している${lines.length}路線をすべて同じ地図に重ねて表示しています。`
-            : `${activeLine.company} / ${activeLine.label} — 丸が大きい駅は他路線への乗換駅です（タップすると下に詳細表示）`}
-        </p>
+      <header style={{ padding: '8px 16px', background: 'linear-gradient(135deg, #14141a, #202028)', color: '#fff', flex: '0 0 auto', boxShadow: '0 2px 8px rgba(0,0,0,0.25)', position: 'relative', zIndex: 1100, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <h1 style={{ margin: 0, fontSize: 16, fontWeight: 800, letterSpacing: '-0.01em', whiteSpace: 'nowrap', flex: '0 0 auto' }}>東京 沿線マップ</h1>
 
-        <div style={{ position: 'relative' }}>
-          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, opacity: 0.5, pointerEvents: 'none' }}>🔍</span>
+        <div style={{ position: 'relative', flex: '1 1 auto', maxWidth: 320 }}>
+          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 13, opacity: 0.5, pointerEvents: 'none' }}>🔍</span>
           <input
             className="search-input"
             type="text"
@@ -280,11 +275,10 @@ export default function OedoTransferMap() {
             placeholder="駅名で検索"
             style={{
               width: '100%',
-              maxWidth: 320,
-              padding: '9px 12px 9px 32px',
+              padding: '7px 10px 7px 30px',
               borderRadius: 999,
               border: 'none',
-              fontSize: 13.5,
+              fontSize: 13,
               background: 'rgba(255,255,255,0.95)',
               color: '#111',
             }}
@@ -358,7 +352,7 @@ export default function OedoTransferMap() {
 
       {/* 路線タブ */}
       {!isAllMode && (
-        <nav className="scroll-row" style={{ padding: '8px 12px', background: '#fafafb', flex: '0 0 auto', borderBottom: '1px solid #eceef1' }}>
+        <nav className="hscroll-row" style={{ padding: '8px 12px', background: '#fafafb', flex: '0 0 auto', borderBottom: '1px solid #eceef1' }}>
           {companyLines.map((l) => (
             <button
               key={l.key}
