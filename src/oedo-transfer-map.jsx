@@ -184,12 +184,9 @@ export default function OedoTransferMap() {
         * { box-sizing: border-box; }
         .scroll-row {
           display: flex;
+          flex-wrap: wrap;
           gap: 8px;
-          overflow-x: auto;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
         }
-        .scroll-row::-webkit-scrollbar { display: none; }
         .chip {
           flex: 0 0 auto;
           white-space: nowrap;
