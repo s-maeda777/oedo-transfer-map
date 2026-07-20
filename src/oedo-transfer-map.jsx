@@ -187,6 +187,15 @@ export default function OedoTransferMap() {
           flex-wrap: wrap;
           gap: 8px;
         }
+        .hscroll-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .hscroll-row::-webkit-scrollbar { display: none; }
         .chip {
           flex: 0 0 auto;
           white-space: nowrap;
@@ -310,7 +319,7 @@ export default function OedoTransferMap() {
       </header>
 
       {/* 会社タブ */}
-      <nav className="scroll-row" style={{ padding: '10px 12px', background: '#fff', flex: '0 0 auto', borderBottom: '1px solid #e8e9ec' }}>
+      <nav className="hscroll-row" style={{ padding: '10px 12px', background: '#fff', flex: '0 0 auto', borderBottom: '1px solid #e8e9ec' }}>
         <button
           className="chip"
           onClick={() => selectCompany(ALL_KEY)}
