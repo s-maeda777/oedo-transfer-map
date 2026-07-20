@@ -483,14 +483,13 @@ export default function OedoTransferMap() {
             全ハブ駅一覧（乗り入れ路線数が多い順）
           </button>
           {allListOpen && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
               {ALL_TRANSFER_HUBS.map((hub) => (
                 <div
                   key={hub.id}
                   className="hub-card"
                   onClick={() => setSelectedHubId(hub.id)}
                   style={{
-                    minWidth: 220,
                     borderColor: hub.id === selectedHubId ? ACCENT : '#eceef1',
                     background: hub.id === selectedHubId ? '#fff7f4' : '#fff',
                   }}
@@ -533,14 +532,13 @@ export default function OedoTransferMap() {
             (transferStations.length === 0 ? (
               <div style={{ fontSize: 12, color: '#8a8a92', marginTop: 6 }}>この路線に乗換駅はありません</div>
             ) : (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
                 {transferStations.map((st) => (
                   <div
                     key={st.id}
                     className="hub-card"
                     onClick={() => setSelectedId(st.id)}
                     style={{
-                      minWidth: 230,
                       borderColor: st.id === selectedId ? ACCENT : '#eceef1',
                       background: st.id === selectedId ? '#fff7f4' : '#fff',
                     }}
