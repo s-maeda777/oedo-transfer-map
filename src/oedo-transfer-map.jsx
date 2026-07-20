@@ -262,7 +262,23 @@ export default function OedoTransferMap() {
         .collapse-toggle:hover { color: #111; }
       `}</style>
 
-      <header style={{ padding: '8px 16px', background: 'linear-gradient(135deg, #14141a, #202028)', color: '#fff', flex: '0 0 auto', boxShadow: '0 2px 8px rgba(0,0,0,0.25)', position: 'relative', zIndex: 1100, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <header
+        style={{
+          padding: '8px 16px',
+          paddingTop: 'calc(8px + env(safe-area-inset-top, 0px))',
+          paddingLeft: 'calc(16px + env(safe-area-inset-left, 0px))',
+          paddingRight: 'calc(16px + env(safe-area-inset-right, 0px))',
+          background: 'linear-gradient(135deg, #14141a, #202028)',
+          color: '#fff',
+          flex: '0 0 auto',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+          position: 'relative',
+          zIndex: 1100,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
         <h1 title="Tokyo Transfer Map" style={{ margin: 0, fontSize: 17, fontWeight: 800, letterSpacing: '0.02em', whiteSpace: 'nowrap', flex: '0 0 auto' }}>TTM</h1>
 
         <div style={{ position: 'relative', flex: '1 1 auto', maxWidth: 320 }}>
@@ -453,7 +469,7 @@ export default function OedoTransferMap() {
 
       {/* 全路線モード: 選択中ハブ + 乗換ハブ駅一覧 */}
       {isAllMode && (
-        <div style={{ flex: '0 0 auto', maxHeight: '34vh', overflowY: 'auto', borderTop: '1px solid #e2e3e7', background: '#f5f6f8', padding: '12px 14px', borderRadius: '16px 16px 0 0', boxShadow: '0 -2px 10px rgba(0,0,0,0.06)' }}>
+        <div style={{ flex: '0 0 auto', maxHeight: '34vh', overflowY: 'auto', borderTop: '1px solid #e2e3e7', background: '#f5f6f8', padding: '12px 14px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))', borderRadius: '16px 16px 0 0', boxShadow: '0 -2px 10px rgba(0,0,0,0.06)' }}>
           {selectedHub ? (
             <div className="mini-card" style={{ borderLeft: `4px solid ${ACCENT}`, marginBottom: 10 }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: '#1c1c22', marginBottom: 8 }}>
@@ -506,7 +522,7 @@ export default function OedoTransferMap() {
 
       {/* 選択中の駅 + 乗換駅一覧 */}
       {!isAllMode && (
-        <div style={{ flex: '0 0 auto', maxHeight: '28vh', overflowY: 'auto', borderTop: '1px solid #e2e3e7', background: '#f5f6f8', padding: '12px 14px', borderRadius: '16px 16px 0 0', boxShadow: '0 -2px 10px rgba(0,0,0,0.06)' }}>
+        <div style={{ flex: '0 0 auto', maxHeight: '28vh', overflowY: 'auto', borderTop: '1px solid #e2e3e7', background: '#f5f6f8', padding: '12px 14px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))', borderRadius: '16px 16px 0 0', boxShadow: '0 -2px 10px rgba(0,0,0,0.06)' }}>
           {selectedStation && (
             <div className="mini-card" style={{ borderLeft: `4px solid ${ACCENT}`, marginBottom: 10 }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: '#1c1c22', marginBottom: 8 }}>📍 {selectedStation.name}</div>
