@@ -84,12 +84,15 @@ function FlyTo({ target }) {
 function boundsOf(stations) {
   const lats = stations.map((s) => s.lat);
   const lons = stations.map((s) => s.lon);
-  const pad = 0.02;
   return [
-    [Math.min(...lats) - pad, Math.min(...lons) - pad],
-    [Math.max(...lats) + pad, Math.max(...lons) + pad],
+    [Math.min(...lats), Math.min(...lons)],
+    [Math.max(...lats), Math.max(...lons)],
   ];
 }
+
+// 緯度経度の余白ではなく画面px単位で余白を取ることで、路線の長さによらず
+// 常にできるだけタイトにズームさせる(駅の丸が小さく密集して押しにくくなるのを緩和)
+const FIT_BOUNDS_OPTIONS = { padding: [20, 20] };
 
 function LineBadge({ name }) {
   return (
@@ -392,7 +395,7 @@ export default function OedoTransferMap() {
 
       <div style={{ flex: '1 1 auto', minHeight: 0 }}>
         {isAllMode ? (
-          <MapContainer key={ALL_KEY} bounds={boundsOf(ALL_STATIONS)} style={{ width: '100%', height: '100%' }}>
+          <MapContainer key={ALL_KEY} bounds={boundsOf(ALL_STATIONS)} boundsOptions={FIT_BOUNDS_OPTIONS} style={{ width: '100%', height: '100%' }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -427,7 +430,7 @@ export default function OedoTransferMap() {
             })}
           </MapContainer>
         ) : (
-          <MapContainer key={activeKey} bounds={boundsOf(activeLine.stations)} style={{ width: '100%', height: '100%' }}>
+          <MapContainer key={activeKey} bounds={boundsOf(activeLine.stations)} boundsOptions={FIT_BOUNDS_OPTIONS} style={{ width: '100%', height: '100%' }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -447,7 +450,7 @@ export default function OedoTransferMap() {
                 <CircleMarker
                   key={st.id}
                   center={[st.lat, st.lon]}
-                  radius={isTransfer ? 9 : 5}
+                  radius={isTransfer ? 10 : 6}
                   pathOptions={{
                     color: isSelected ? ACCENT : '#333',
                     weight: isSelected ? 3 : 1.5,
